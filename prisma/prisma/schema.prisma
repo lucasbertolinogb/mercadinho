@@ -1,0 +1,58 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+//vai ser os cliente que quiserem usar as compras online
+model Cliente {
+  id    Int     @id @default(uuid())
+  email String?  @unique
+  name  String
+  cartao Cartao
+  carrinho Carrrinho[]
+}
+
+//Produtos oferecidos até o momento
+model Produto {
+  id          Int      @id @default(uuid())
+  nome        String
+  descricao   String?
+  preco       Float
+  estoque     Int
+}
+
+//Carrrinho do cliente com lista de produtos
+model Carrrinho {
+  id    Int     @id @default(uuid())
+  clienteId Int
+  produtos  Produto[]
+  cliente   Cliente @relation(fields: [clienteId], references: [id])
+}
+
+//Empregado que pode mudar os itens da loja 
+model Empregado {
+  id        Int     @id @default(uuid())
+  name      String  @unique
+  senha     int     @unique
+  produtosAdicionados Produto[]
+  produtosModificados Produto[]
+}
+
+//Etapa final da compra que vai registrar o que eh gasto e data do ocorrido
+model Transacao {
+  id            Int     @id @default(uuid())
+  valor         Float
+  data          DateTime
+  clienteId     Int
+  produtos      Produto[]
+  cliente       Cliente @relation(fields: [clienteId], references: [id])
+}
+
+
