@@ -1,0 +1,104 @@
+.historico-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.historico-modal {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 560px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  animation: historicoEntrada 0.25s ease;
+}
+
+@keyframes historicoEntrada {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.historico-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #ecf0f1;
+}
+
+.historico-header h2 {
+  color: #2c3e50;
+  font-size: 1.25rem;
+}
+
+.historico-fechar {
+  background: none;
+  border: none;
+  color: #7f8c8d;
+  cursor: pointer;
+  font-size: 1.5rem;
+  padding: 0.5rem;
+}
+
+.historico-conteudo {
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.historico-vazio {
+  color: #7f8c8d;
+  padding: 2rem 1rem;
+  text-align: center;
+}
+
+.historico-pedido {
+  border-bottom: 1px solid #ecf0f1;
+  padding: 0.75rem 0;
+  position: relative;
+}
+
+.historico-pedido:last-child {
+  border-bottom: none;
+}
+
+.historico-pedido-topo {
+  align-items: flex-start;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.historico-pedido-topo div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.historico-pedido time,
+.historico-pedido li {
+  color: #7f8c8d;
+  font-size: 0.9rem;
+}
+
+.historico-pedido ul {
+  list-style: none;
+  margin: 0.6rem 0 0;
+}
+
+.historico-valor {
+  color: #27ae60;
+  white-space: nowrap;
+}
+
+.historico-status {
+  color: #27ae60;
+  font-size: 0.75rem;
+  text-transform: capitalize;
+}

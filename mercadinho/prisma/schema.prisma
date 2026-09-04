@@ -1,0 +1,85 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// Cliente que usa as compras online
+model Cliente {
+  id         String      @id @default(uuid()) @map("_id")
+  email      String      @unique
+  name       String?
+  cartao     Cartao?
+  carrinho   Carrinho[]
+  transacoes Transacao[]
+}
+
+// Cartão do cliente
+model Cartao {
+  id        String  @id @default(uuid()) @map("_id")
+  name      String
+  numero    String
+  validade  String
+  cvv       String
+  clienteId String  @unique
+  cliente   Cliente @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+}
+
+// Produtos oferecidos na loja
+model Produto {
+  id        String         @id @default(uuid()) @map("_id")
+  nome      String
+  descricao String?
+  preco     Float
+  imagem    String?
+  estoque   Int            @default(0)
+  categoria String?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  carrinhos CarrinhoItem[]
+}
+
+// Carrinho do cliente
+model Carrinho {
+  id        String         @id @default(uuid()) @map("_id")
+  clienteId String
+  itens     CarrinhoItem[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  cliente   Cliente        @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+}
+
+// Item do carrinho
+model CarrinhoItem {
+  id         String   @id @default(uuid()) @map("_id")
+  quantidade Int
+  preco      Float // Preço no momento da adição
+  produtoId  String
+  carrinhoId String
+  produto    Produto  @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+  carrinho   Carrinho @relation(fields: [carrinhoId], references: [id], onDelete: Cascade)
+}
+
+// Empregado que pode mudar os itens da loja
+model Empregado {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  senha     String   @unique
+  createdAt DateTime @default(now())
+}
+
+// Transação final da compra
+model Transacao {
+  id        String   @id @default(uuid()) @map("_id")
+  valor     Float
+  data      DateTime @default(now())
+  clienteId String
+  status    String   @default("pendente")
+  itens     String // JSON dos itens comprados
+  cliente   Cliente  @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+}

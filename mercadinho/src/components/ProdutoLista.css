@@ -1,0 +1,32 @@
+.produto-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+  padding: 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.produto-lista-vazia {
+  text-align: center;
+  padding: 3rem;
+  color: #7f8c8d;
+}
+
+.produto-lista-vazia p {
+  font-size: 1.2rem;
+  margin: 0;
+}
+
+.produto-lista-vazia-sub {
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 600px) {
+  .produto-lista {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+    padding: 0.5rem;
+  }
+}

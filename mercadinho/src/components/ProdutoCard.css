@@ -1,0 +1,113 @@
+.produto-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.produto-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.produto-imagem {
+  width: 100%;
+  height: 150px;
+  background: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.produto-imagem img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.produto-sem-imagem {
+  font-size: 3rem;
+}
+
+.produto-info {
+  padding: 1rem;
+}
+
+.produto-nome {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+  color: #2c3e50;
+}
+
+.produto-descricao {
+  font-size: 0.85rem;
+  color: #7f8c8d;
+  margin: 0 0 0.5rem;
+}
+
+.produto-preco {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #27ae60;
+  margin: 0 0 0.5rem;
+}
+
+.produto-estoque {
+  font-size: 0.85rem;
+  color: #7f8c8d;
+  margin: 0 0 1rem;
+}
+
+.produto-estoque.esgotado {
+  color: #e74c3c;
+}
+
+.produto-acoes {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-comprar, .btn-editar, .btn-excluir {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.btn-comprar {
+  background: #27ae60;
+  color: white;
+}
+
+.btn-comprar:hover:not(:disabled) {
+  background: #219a52;
+}
+
+.btn-comprar:disabled {
+  background: #95a5a6;
+  cursor: not-allowed;
+}
+
+.btn-editar {
+  background: #3498db;
+  color: white;
+}
+
+.btn-editar:hover {
+  background: #2980b9;
+}
+
+.btn-excluir {
+  background: #e74c3c;
+  color: white;
+}
+
+.btn-excluir:hover {
+  background: #c0392b;
+}
