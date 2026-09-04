@@ -7,7 +7,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
+
 }
 
 //vai ser os cliente que quiserem usar as compras online
@@ -16,15 +16,19 @@ model Cliente {
   email String     @unique
   name  String?    //na compra da loja tem que pelo menos ter um email 
   cartao Cartao?   //opcional 
-  carrinho Carrrinho[]
+  carrinho Carrinho[]
+  transacoes Transacao[]
 }
 
 //Cartão do cliente de mastercard , nu bank e entre outros 
 model Cartao{
   id        String @id @default(uuid()) @map("_id") 
   name      String 
+  numero    String
+  validade  String
+  cvv       String
   clienteId String @unique  //cada cliente tem um cartão único
-  cliente   Cliente @relation(fields: [clienteId], references: [id])
+  cliente   Cliente @relation(fields: [clienteId], references: [id], onDelete: Cascade)
 }
 
 //Produtos oferecidos até o momento
@@ -34,35 +38,51 @@ model Produto {
   descricao   String?   //se quiser pode ter uma descrição 
   preco       Float
   estoque     Int
-  empregado Empregado[] //produto pode ser alterados por vários empregados
-  carrinhos Carrrinho[] //produtos estão em vários Carrinho
+  imagem      String?
+  categoria   String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  carrinhoItens CarrinhoItem[] //produtos estão em vários itens de carrinho
 }
 
-//Carrrinho do cliente com lista de produtos
-model Carrrinho {
+//Carrinho do cliente com lista de produtos
+model Carrinho {
   id        String     @id @default(uuid())  @map("_id")
   clienteId String
-  produtos  Produto[]   //carrinho podem ter vários produtos 
-  trasacao Transacao[]  //o produto pode ter tido trasações feitas pelo cliente 
-  cliente   Cliente @relation(fields: [clienteId], references: [id])
+  itens     CarrinhoItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  cliente   Cliente @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+}
+
+// Item do carrinho
+model CarrinhoItem {
+  id         String   @id @default(uuid()) @map("_id")
+  quantidade Int
+  preco      Float    // Preço no momento da adição
+  produtoId  String
+  carrinhoId String
+  produto    Produto  @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+  carrinho   Carrinho @relation(fields: [carrinhoId], references: [id], onDelete: Cascade)
 }
 
 //Empregado que pode mudar os itens da loja 
 model Empregado {
   id        String     @id @default(uuid())
   name      String  @unique     //senha e name único para cada empregado
-  senha     Int     @unique     //para poder mexer em produtos
-  produtosModificados Produto[] //Ele mudou algo? então sera anotado
+  senha     String     @unique     //para poder mexer em produtos
+  createdAt DateTime   @default(now())
 }
 
 //Etapa final da compra que vai registrar o que eh gasto e data do ocorrido
 model Transacao {
-  id          String     @id @default(uuid())
+  id          String     @id @default(uuid()) @map("_id")
   valor       Float
-  data        DateTime
+  data        DateTime   @default(now())
   clienteId   String
-  produtos    Carrrinho
-  cliente     Cliente @relation(fields: [clienteId], references: [id])
+  status      String     @default("pendente")
+  itens       String     // JSON dos itens comprados
+  cliente     Cliente @relation(fields: [clienteId], references: [id], onDelete: Cascade)
 }
 
 
