@@ -55,7 +55,7 @@
   gap: 0.5rem;
 }
 
-.admin-btn, .cart-btn, .history-btn {
+.admin-btn, .cart-btn, .history-btn, .account-btn {
   padding: 0.75rem 1rem;
   border: none;
   border-radius: 8px;
@@ -65,7 +65,7 @@
   transition: all 0.3s;
 }
 
-.admin-btn, .history-btn {
+.admin-btn, .history-btn, .account-btn {
   background: white;
   color: #27ae60;
 }
@@ -73,6 +73,12 @@
 .admin-btn.active {
   background: #e74c3c;
   color: white;
+}
+
+.admin-btn:disabled,
+.account-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .cart-btn {

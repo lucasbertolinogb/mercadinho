@@ -3,6 +3,7 @@ import type { Request, Response } from 'express';
 import { MercadoPagoConfig, Payment, Preference } from 'mercadopago';
 import { z } from 'zod';
 import { prisma } from '../prisma';
+import { getCustomerIdFromToken } from '../auth';
 
 const itensSchema = z.object({
   itens: z.array(z.object({
@@ -105,6 +106,16 @@ export async function criarPagamento(request: Request, response: Response) {
   }
 
   const { itens: rawItems } = itensSchema.parse(request.body);
+  const authorization = request.get('authorization') || '';
+  const sessionToken = authorization.startsWith('Bearer ')
+    ? authorization.slice('Bearer '.length)
+    : '';
+  const authenticatedClienteId = sessionToken ? getCustomerIdFromToken(sessionToken) : null;
+  if (sessionToken && !authenticatedClienteId) {
+    response.status(401).json({ error: 'Sessão expirada. Entre novamente para continuar.' });
+    return;
+  }
+
   const itens = normalizeItems(rawItems);
   const produtos = await prisma.produto.findMany({
     where: { id: { in: itens.map(item => item.produtoId) } },
@@ -115,11 +126,19 @@ export async function criarPagamento(request: Request, response: Response) {
     return;
   }
 
-  const cliente = await prisma.cliente.upsert({
-    where: { email: 'guest@mercadinho.local' },
-    update: {},
-    create: { email: 'guest@mercadinho.local', name: 'Cliente visitante' },
-  });
+  const cliente = authenticatedClienteId
+    ? await prisma.cliente.findUnique({ where: { id: authenticatedClienteId }, select: { id: true } })
+    : await prisma.cliente.upsert({
+      where: { email: 'guest@mercadinho.local' },
+      update: {},
+      create: { email: 'guest@mercadinho.local', name: 'Cliente visitante' },
+      select: { id: true },
+    });
+
+  if (!cliente) {
+    response.status(401).json({ error: 'Conta de cliente não encontrada' });
+    return;
+  }
 
   const pedido = await prisma.$transaction(async transaction => {
     let total = 0;

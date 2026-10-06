@@ -1,5 +1,11 @@
 import { Router } from 'express';
-import { entrar } from './controllers/authController';
+import { entrar, sair, verificarSessaoAdmin } from './controllers/authController';
+import {
+  getCustomerAccount,
+  loginCustomerAccount,
+  logoutCustomerAccount,
+  registerCustomerAccount,
+} from './controllers/clienteAuthController';
 import { listarPedidos } from './controllers/pedidoController';
 import {
   consultarPagamento,
@@ -17,6 +23,12 @@ import { requireAdmin } from './auth';
 export const routes = Router();
 
 routes.post('/auth/login', entrar);
+routes.post('/auth/logout', sair);
+routes.get('/auth/admin/me', verificarSessaoAdmin);
+routes.post('/auth/clientes/cadastro', registerCustomerAccount);
+routes.post('/auth/clientes/login', loginCustomerAccount);
+routes.get('/auth/clientes/me', getCustomerAccount);
+routes.post('/auth/clientes/logout', logoutCustomerAccount);
 routes.get('/produtos', listarProdutos);
 routes.post('/produtos', requireAdmin, criarProduto);
 routes.put('/produtos/:id', requireAdmin, atualizarProduto);

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { CustomerAccount } from './ClienteAuth';
 import './Header.css';
 
 interface HeaderProps {
@@ -7,10 +8,23 @@ interface HeaderProps {
   onSearch: (query: string) => void;
   onHistoryClick: () => void;
   isAdmin: boolean;
+  isCustomerLoggedIn: boolean;
   onAdminToggle: () => void;
+  cliente: CustomerAccount | null;
+  onCustomerClick: () => void;
 }
 
-export function Header({ onCartClick, cartItemCount, onSearch, onHistoryClick, isAdmin, onAdminToggle }: HeaderProps) {
+export function Header({
+  onCartClick,
+  cartItemCount,
+  onSearch,
+  onHistoryClick,
+  isAdmin,
+  isCustomerLoggedIn,
+  onAdminToggle,
+  cliente,
+  onCustomerClick,
+}: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleSearch = (e: React.FormEvent) => {
@@ -38,9 +52,13 @@ export function Header({ onCartClick, cartItemCount, onSearch, onHistoryClick, i
           <button className="history-btn" onClick={onHistoryClick}>
             🧾 Histórico
           </button>
+          <button className="account-btn" onClick={onCustomerClick} disabled={isAdmin}>
+            {cliente ? '👤 Minha conta' : '👤 Entrar'}
+          </button>
           <button 
             className={`admin-btn ${isAdmin ? 'active' : ''}`}
             onClick={onAdminToggle}
+            disabled={!isAdmin && isCustomerLoggedIn}
           >
             {isAdmin ? '👤 Admin' : '🔐 Login'}
           </button>

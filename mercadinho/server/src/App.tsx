@@ -4,6 +4,7 @@ import { ProdutoLista } from './components/ProdutoLista';
 import { Carrinho } from './components/Carrinho';
 import { ProdutoForm } from './components/ProdutoForm';
 import { AdminLogin } from './components/AdminLogin';
+import { ClienteAuth, type CustomerAccount } from './components/ClienteAuth';
 import { Historico } from './components/Historico';
 import { PagamentoResultado } from './components/PagamentoResultado';
 import type { Produto, CarrinhoItem, PedidoHistorico } from './types';
@@ -24,13 +25,16 @@ export default function App() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [carrinhoItens, setCarrinhoItens] = useState<CarrinhoItem[]>([]);
   const [isCarrinhoOpen, setIsCarrinhoOpen] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(() => Boolean(sessionStorage.getItem('admin-token')));
   const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false);
+  const [isClienteAuthOpen, setIsClienteAuthOpen] = useState(false);
   const [isProdutoFormOpen, setIsProdutoFormOpen] = useState(false);
   const [produtoEditando, setProdutoEditando] = useState<Produto | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [adminToken, setAdminToken] = useState(() => sessionStorage.getItem('admin-token') || '');
+  const [cliente, setCliente] = useState<CustomerAccount | null>(null);
+  const [clienteToken, setClienteToken] = useState(() => sessionStorage.getItem('cliente-token') || '');
   const [historico, setHistorico] = useState<PedidoHistorico[]>([]);
   const [isHistoricoOpen, setIsHistoricoOpen] = useState(false);
   const [isHistoricoLoading, setIsHistoricoLoading] = useState(false);
@@ -51,10 +55,67 @@ export default function App() {
     void loadProdutos();
   }, []);
 
+  useEffect(() => {
+    if (!adminToken) return;
+
+    if (clienteToken) {
+      let isActive = true;
+      void fetch(`${API_URL}/auth/logout`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${adminToken}` },
+      }).catch(() => undefined).finally(() => {
+        if (!isActive) return;
+        sessionStorage.removeItem('admin-token');
+        setAdminToken('');
+        setIsAdmin(false);
+      });
+      return () => { isActive = false; };
+    }
+
+    let isActive = true;
+    void fetch(`${API_URL}/auth/admin/me`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    }).then(response => {
+      if (!response.ok) throw new Error('Sessão administrativa expirada');
+      if (isActive) setIsAdmin(true);
+    }).catch(() => {
+      if (!isActive) return;
+      sessionStorage.removeItem('admin-token');
+      setAdminToken('');
+      setIsAdmin(false);
+    });
+
+    return () => { isActive = false; };
+  }, [adminToken, clienteToken]);
+
+  useEffect(() => {
+    if (!clienteToken) return;
+
+    let isActive = true;
+    void fetch(`${API_URL}/auth/clientes/me`, {
+      headers: { Authorization: `Bearer ${clienteToken}` },
+    }).then(async response => {
+      if (!response.ok) throw new Error('Sessão expirada');
+      return response.json() as Promise<CustomerAccount>;
+    }).then(account => {
+      if (isActive) setCliente(account);
+    }).catch(() => {
+      if (!isActive) return;
+      sessionStorage.removeItem('cliente-token');
+      setClienteToken('');
+      setCliente(null);
+    });
+
+    return () => { isActive = false; };
+  }, [clienteToken]);
+
   const loadHistorico = async () => {
     setIsHistoricoLoading(true);
     try {
-      const response = await fetch(`${API_URL}/pedidos`);
+      const sessionToken = isAdmin ? adminToken : clienteToken;
+      const response = await fetch(`${API_URL}/pedidos`, {
+        headers: sessionToken ? { Authorization: `Bearer ${sessionToken}` } : {},
+      });
       if (!response.ok) throw new Error('Não foi possível carregar o histórico');
       setHistorico(await response.json());
     } catch (error) {
@@ -65,8 +126,33 @@ export default function App() {
   };
 
   const handleHistoryClick = () => {
+    if (!cliente && !isAdmin) {
+      setIsClienteAuthOpen(true);
+      return;
+    }
     setIsHistoricoOpen(true);
     void loadHistorico();
+  };
+
+  const handleCustomerAuthenticated = (account: CustomerAccount, token: string) => {
+    sessionStorage.removeItem('admin-token');
+    setAdminToken('');
+    setIsAdmin(false);
+    sessionStorage.setItem('cliente-token', token);
+    setClienteToken(token);
+    setCliente(account);
+    setIsClienteAuthOpen(false);
+  };
+
+  const handleCustomerLogout = async () => {
+    await fetch(`${API_URL}/auth/clientes/logout`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${clienteToken}` },
+    }).catch(() => undefined);
+    sessionStorage.removeItem('cliente-token');
+    setClienteToken('');
+    setCliente(null);
+    setIsClienteAuthOpen(false);
   };
 
   // Filtrar produtos pela busca
@@ -171,17 +257,38 @@ export default function App() {
   const handleAdminLogin = async (name: string, senha: string): Promise<boolean> => {
     const response = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(clienteToken ? { Authorization: `Bearer ${clienteToken}` } : {}),
+      },
       body: JSON.stringify({ name, senha }),
     });
     if (!response.ok) return false;
 
     const { token } = await response.json();
+    sessionStorage.removeItem('cliente-token');
+    setClienteToken('');
+    setCliente(null);
     sessionStorage.setItem('admin-token', token);
     setAdminToken(token);
     setIsAdmin(true);
     setIsAdminLoginOpen(false);
     return true;
+  };
+
+  const handleAdminToggle = async () => {
+    if (!isAdmin) {
+      setIsAdminLoginOpen(true);
+      return;
+    }
+
+    await fetch(`${API_URL}/auth/logout`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${adminToken}` },
+    }).catch(() => undefined);
+    sessionStorage.removeItem('admin-token');
+    setAdminToken('');
+    setIsAdmin(false);
   };
 
   // Finalizar compra
@@ -190,13 +297,21 @@ export default function App() {
 
     const response = await fetch(`${API_URL}/pagamento`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(clienteToken ? { Authorization: `Bearer ${clienteToken}` } : {}),
+      },
       body: JSON.stringify({
         itens: carrinhoItens.map(item => ({ produtoId: item.produtoId, quantidade: item.quantidade })),
       }),
     });
     if (!response.ok) {
       const errorData = await response.json().catch(() => null) as { error?: string } | null;
+      if (response.status === 401 && clienteToken) {
+        sessionStorage.removeItem('cliente-token');
+        setClienteToken('');
+        setCliente(null);
+      }
       alert(errorData?.error || 'Não foi possível iniciar o pagamento.');
       return;
     }
@@ -228,7 +343,10 @@ export default function App() {
         onSearch={setSearchQuery}
         onHistoryClick={handleHistoryClick}
         isAdmin={isAdmin}
-        onAdminToggle={() => isAdmin ? setIsAdmin(false) : setIsAdminLoginOpen(true)}
+        isCustomerLoggedIn={Boolean(clienteToken)}
+        onAdminToggle={handleAdminToggle}
+        cliente={cliente}
+        onCustomerClick={() => setIsClienteAuthOpen(true)}
       />
       
       <main className="main">
@@ -259,7 +377,7 @@ export default function App() {
           />
         )}
       </main>
-      
+
       <Carrinho
         itens={carrinhoItens}
         isOpen={isCarrinhoOpen}
@@ -291,6 +409,16 @@ export default function App() {
         <AdminLogin
           onLogin={handleAdminLogin}
           onClose={() => setIsAdminLoginOpen(false)}
+        />
+      )}
+
+      {isClienteAuthOpen && (
+        <ClienteAuth
+          cliente={cliente}
+          previousAdminToken={adminToken}
+          onAuthenticated={handleCustomerAuthenticated}
+          onLogout={handleCustomerLogout}
+          onClose={() => setIsClienteAuthOpen(false)}
         />
       )}
     </div>
