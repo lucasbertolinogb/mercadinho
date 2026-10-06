@@ -11,10 +11,16 @@ Depois de retomar o desenvolvimento do projeto, implementei uma primeira versão
 - listagem de produtos com busca por nome e categoria;
 - carrinho de compras com alteração de quantidade e remoção de itens;
 - finalização de pedidos;
+- integração de pagamento com checkout do Mercado Pago;
+- criação de preferência de pagamento e redirecionamento para o checkout;
+- confirmação do pagamento pelo webhook do Mercado Pago, com consulta do status no backend;
+- reserva do estoque durante o pagamento e liberação quando o pagamento falha;
 - atualização do estoque durante a compra;
 - registro persistente das transações no banco de dados;
 - interface centralizada e adaptada para uso em dispositivos móveis;
 - cadastro de produtos por administradores, incluindo preço, estoque, categoria, descrição e imagem.
+
+O status exibido após o checkout é confirmado pelo backend a partir do webhook; a página de retorno do Mercado Pago, sozinha, não confirma a aprovação. Para habilitar os pagamentos, é necessário configurar as credenciais do Mercado Pago e as URLs públicas do frontend e do webhook.
 
 ## Tecnologias
 
@@ -22,12 +28,12 @@ Depois de retomar o desenvolvimento do projeto, implementei uma primeira versão
 - Vite;
 - Node.js e Express;
 - Prisma ORM;
+- SDK do Mercado Pago;
 - SQLite;
 - Zod para validação dos dados.
 
 ## Próximos passos
 
-- integrar pagamentos com cartão de crédito por meio de um gateway seguro;
 - melhorar o gerenciamento de usuários e contas de clientes;
 - reforçar a segurança da autenticação e das sessões;
 - adicionar histórico de pedidos para clientes;
