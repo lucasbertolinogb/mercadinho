@@ -11,5 +11,12 @@
     "rootDir": "src",
     "outDir": "dist"
   },
-  "include": ["src"]
+  "include": [
+    "src/app.ts",
+    "src/auth.ts",
+    "src/prisma.ts",
+    "src/routes.ts",
+    "src/server.ts",
+    "src/controllers/**/*.ts"
+  ]
 }

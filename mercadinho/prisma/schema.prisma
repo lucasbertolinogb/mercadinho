@@ -75,11 +75,14 @@ model Empregado {
 
 // Transação final da compra
 model Transacao {
-  id        String   @id @default(uuid()) @map("_id")
-  valor     Float
-  data      DateTime @default(now())
-  clienteId String
-  status    String   @default("pendente")
-  itens     String // JSON dos itens comprados
-  cliente   Cliente  @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  id               String   @id @default(uuid()) @map("_id")
+  valor            Float
+  data             DateTime @default(now())
+  clienteId        String
+  status           String   @default("PENDENTE")
+  itens            String // JSON dos itens comprados
+  paymentId        String?  @unique
+  preferenceId     String?  @unique
+  estoqueReservado Boolean  @default(false)
+  cliente          Cliente  @relation(fields: [clienteId], references: [id], onDelete: Cascade)
 }

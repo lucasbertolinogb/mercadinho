@@ -21,5 +21,19 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"]
+  "include": [
+    "server/src/App.tsx",
+    "server/src/main.tsx",
+    "server/src/**/*.tsx",
+    "server/src/**/*.css",
+    "server/src/types/**/*.ts"
+  ],
+  "exclude": [
+    "server/src/app.ts",
+    "server/src/auth.ts",
+    "server/src/prisma.ts",
+    "server/src/routes.ts",
+    "server/src/server.ts",
+    "server/src/controllers/**/*.ts"
+  ]
 }

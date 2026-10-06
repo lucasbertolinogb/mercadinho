@@ -1,0 +1,39 @@
+.pagamento-resultado {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: #f5f6fa;
+}
+
+.pagamento-resultado-card {
+  width: min(100%, 32rem);
+  padding: 2rem;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #2c3e50;
+  text-align: center;
+  box-shadow: 0 12px 30px rgb(44 62 80 / 12%);
+}
+
+.pagamento-resultado-status {
+  margin-bottom: 0.75rem;
+  color: #3498db;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.pagamento-resultado-card h1 {
+  margin-bottom: 0.75rem;
+}
+
+.pagamento-resultado-card p:not(.pagamento-resultado-status) {
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+.pagamento-resultado-card a {
+  color: #2471a3;
+  font-weight: 600;
+}

@@ -5,6 +5,7 @@ import { Carrinho } from './components/Carrinho';
 import { ProdutoForm } from './components/ProdutoForm';
 import { AdminLogin } from './components/AdminLogin';
 import { Historico } from './components/Historico';
+import { PagamentoResultado } from './components/PagamentoResultado';
 import type { Produto, CarrinhoItem, PedidoHistorico } from './types';
 import './App.css';
 
@@ -76,9 +77,9 @@ export default function App() {
 
   // Adicionar ao carrinho
   const handleAddToCart = (produto: Produto) => {
-    if (produto.estoque < 1) return;
-
     const existingItem = carrinhoItens.find(item => item.produtoId === produto.id);
+    const quantidadeAtual = existingItem?.quantidade || 0;
+    if (quantidadeAtual >= produto.estoque) return;
     
     if (existingItem) {
       // Atualizar quantidade
@@ -101,23 +102,10 @@ export default function App() {
       setCarrinhoItens([...carrinhoItens, newItem]);
     }
     
-    setProdutos(produtos.map(item =>
-      item.id === produto.id
-        ? { ...item, estoque: item.estoque - 1 }
-        : item
-    ));
   };
 
   // Remover item do carrinho
   const handleRemoveItem = (itemId: string) => {
-    const item = carrinhoItens.find(i => i.id === itemId);
-    if (item) {
-      setProdutos(produtos.map(produto =>
-        produto.id === item.produtoId
-          ? { ...produto, estoque: produto.estoque + item.quantidade }
-          : produto
-      ));
-    }
     setCarrinhoItens(carrinhoItens.filter(i => i.id !== itemId));
   };
 
@@ -128,16 +116,8 @@ export default function App() {
     const item = carrinhoItens.find(i => i.id === itemId);
     if (!item) return;
     
-    const diff = quantidade - item.quantidade;
-
     const produto = produtos.find(current => current.id === item.produtoId);
-    if (!produto || produto.estoque < diff) return;
-
-    setProdutos(produtos.map(current =>
-      current.id === item.produtoId
-        ? { ...current, estoque: current.estoque - diff }
-        : current
-    ));
+    if (!produto || quantidade > produto.estoque) return;
     
     setCarrinhoItens(carrinhoItens.map(i =>
       i.id === itemId ? { ...i, quantidade } : i
@@ -208,7 +188,7 @@ export default function App() {
   const handleCheckout = async () => {
     if (carrinhoItens.length === 0) return;
 
-    const response = await fetch(`${API_URL}/pedidos`, {
+    const response = await fetch(`${API_URL}/pagamento`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -216,14 +196,17 @@ export default function App() {
       }),
     });
     if (!response.ok) {
-      alert('Não foi possível finalizar a compra. Verifique o estoque.');
+      const errorData = await response.json().catch(() => null) as { error?: string } | null;
+      alert(errorData?.error || 'Não foi possível iniciar o pagamento.');
       return;
     }
 
-    alert('Compra realizada com sucesso! Obrigado pela preferência.');
-    setCarrinhoItens([]);
-    setIsCarrinhoOpen(false);
-    void loadHistorico();
+    const { init_point: initPoint } = await response.json() as { init_point?: string };
+    if (!initPoint) {
+      alert('O Mercado Pago nÃ£o retornou uma URL de checkout.');
+      return;
+    }
+    window.location.href = initPoint;
   };
 
   // Abrir formulário de edição
@@ -231,6 +214,11 @@ export default function App() {
     setProdutoEditando(produto);
     setIsProdutoFormOpen(true);
   };
+
+  const paymentPath = window.location.pathname;
+  if (paymentPath === '/pagamento/sucesso' || paymentPath === '/pagamento/falhou' || paymentPath === '/pagamento/pendente') {
+    return <PagamentoResultado tipo={paymentPath.split('/').pop() as 'sucesso' | 'falhou' | 'pendente'} />;
+  }
 
   return (
     <div className="app">
